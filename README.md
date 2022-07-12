@@ -1,0 +1,2 @@
+# BeanCounter_CC
+基于N32G031K8Q7的BeanCounter

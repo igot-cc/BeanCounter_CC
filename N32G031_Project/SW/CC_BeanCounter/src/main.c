@@ -76,21 +76,23 @@ byte numPos[10] = {0}; //存储displayBuf的每位数字
 byte pitch = 4; //编带上零件的间距，mm
 
 //adc DMA存放数组
-uint16_t ADCConvertedValue[2] = {0};
+uint16_t ADCConvertedValue[2];
 
 //***************************** 结构体定义 **************************
 SystemTPDF pitch_mode;
 
 //**************************** Function *****************************
-uint8_t analogRead(uint8_t gpio)
+uint16_t analogRead(uint8_t gpio)
 {
 	if(gpio == IRSENSOR_A)
 	{
+		ADCConvertedValue[0] = ADC_GetData(ADC_CH_8_PB0);
 		RTT_printf("valur0 = %d,\n", ADCConvertedValue[0]);
 		return ADCConvertedValue[0];
 	}
 	else if(gpio == IRSENSOR_B)
 	{
+		ADCConvertedValue[1] = ADC_GetData(ADC_CH_9_PB1);
 		RTT_printf("valur1 = %d,\n", ADCConvertedValue[1]);
 		return ADCConvertedValue[1];
 	}
@@ -108,6 +110,9 @@ void TestLed()
 
 //这是实际处理采集到的元器件数量的函数，更新计数值，有两种模式countingMode,一个IR或两个IR
 //return:更新了counting 和 displayBuf
+uint16_t adc_a; 
+uint16_t adc_b;
+uint16_t bool_state_current;
 void updateCount(void)
 {
   int state_current = 0;
@@ -116,23 +121,23 @@ void updateCount(void)
     {
         /**************** Dispense Mode ****************/
         // Fetch the ADC
-        int adc_a = analogRead(IRSENSOR_A); 
-        int adc_b = analogRead(IRSENSOR_B);
+        adc_a = analogRead(IRSENSOR_A); 
+        adc_b = analogRead(IRSENSOR_B);
 
         // 建立一个死区，防止计数错误
-        if (adc_a > 150)
+        if (adc_a > 450)
         {
             state_a = 0x01;
         }
-        else if (adc_a < 100)
+        else if (adc_a < 300)
         {
             state_a = 0x00;
         }
-        if (adc_b > 150)
+        if (adc_b > 450)
         {
             state_b = 0x02;
         }
-        else if (adc_b < 100)
+        else if (adc_b < 300)
         {
             state_b = 0x00;
         }
@@ -175,17 +180,17 @@ void updateCount(void)
     {
         /**************** Inventory Mode ****************/
         // Fetch the ADC
-        int adc_a = analogRead(IRSENSOR_A);
+        adc_a = analogRead(IRSENSOR_A);
 
         // Create a bool to store the sensor state
-        bool bool_state_current;
+//        uint16_t bool_state_current;
 
         // We need to do the deadzone trick here as well for stability
-        if (adc_a > 150)
+        if (adc_a > 450)
         {
             bool_state_current = 1;
         }
-        else if (adc_a < 100)
+        else if (adc_a < 300)
         {
             bool_state_current = 0;
         }
@@ -219,7 +224,8 @@ void updateLED()
     digitNumWrite(DIGIT1_CATHODE, 1);
     if (device_mode == 1)
     {
-        updateCount(); //更新计数值
+      updateCount(); //更新计数值
+			delay_ms(1);
     }
     else
     {
@@ -238,7 +244,8 @@ void updateLED()
     digitNumWrite(DIGIT2_CATHODE, 1);
     if (device_mode == 1)
     {
-        updateCount();
+      updateCount();
+			delay_ms(1);
     }
     else
     {
@@ -257,7 +264,8 @@ void updateLED()
     digitNumWrite(DIGIT3_CATHODE, 1);
     if (device_mode == 1)
     {
-        updateCount();
+      updateCount();
+			delay_ms(1);
     }
     else
     {
